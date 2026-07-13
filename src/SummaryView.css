@@ -1,0 +1,205 @@
+/* ── Root ────────────────────────────────────────────────────────────────── */
+.summary-root {
+  padding-bottom: 80px;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.summary-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+
+.summary-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: #f5f5f0;
+  margin-bottom: 6px;
+}
+
+.summary-subtitle {
+  font-size: 14px;
+  color: #a0a0b0;
+  line-height: 1.5;
+}
+
+/* ── Generate button ─────────────────────────────────────────────────────── */
+.btn-generate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #e94560, #a55eea);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn-generate:hover { opacity: 0.88; }
+.btn-generate:active { transform: scale(0.97); }
+.btn-generate:disabled { opacity: 0.45; cursor: default; }
+
+/* ── AI badge ────────────────────────────────────────────────────────────── */
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(165, 94, 234, 0.12);
+  color: #a55eea;
+  border: 1px solid rgba(165, 94, 234, 0.25);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+/* ── Grid ────────────────────────────────────────────────────────────────── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+
+/* ── Summary card ────────────────────────────────────────────────────────── */
+.summary-card {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 18px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* accent line across top */
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.summary-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.summary-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px #16213e, 0 0 0 4px var(--accent);
+}
+
+.summary-card-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f5f5f0;
+  margin-bottom: 2px;
+}
+
+.summary-card-handle {
+  font-size: 12px;
+  color: #6a6a80;
+}
+
+.summary-text {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #c0c0d0;
+  margin-bottom: 16px;
+}
+
+/* ── Highlights ──────────────────────────────────────────────────────────── */
+.summary-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-highlight {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: #a0a0b0;
+  line-height: 1.5;
+}
+
+.highlight-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+.summary-card-skeleton {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+.skeleton-line {
+  height: 13px;
+  border-radius: 6px;
+  background: #0f3460;
+  margin-bottom: 8px;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.summary-empty-state {
+  text-align: center;
+  padding: 80px 0;
+  color: #4a4a60;
+}
+
+.summary-empty-state p {
+  font-size: 15px;
+  color: #4a4a60;
+  margin-top: 14px;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* ── Animation ───────────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up { animation: fadeUp 0.22s ease both; }
