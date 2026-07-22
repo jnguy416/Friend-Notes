@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
 import SummaryView from "./SummaryView";
 import './App.css';
+import Sidebar from "./Sidebar";
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -356,7 +357,6 @@ export default function App() {
   const [user, setUser]               = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [friends, setFriends]         = useState<Friend[]>([]);
-  const [dbLoading, setDbLoading]     = useState(false);
   const [page, setPage]               = useState<Page>("friends");
   const [activeFriendId, setActiveFriendId] = useState<string | null>(null);
 
@@ -370,22 +370,30 @@ export default function App() {
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
+      if (!session) setFriends([]);
     });
     return () => subscription.unsubscribe();
   }, []);
 
   // ── Load friends when user signs in ───────────────────────────────────
   useEffect(() => {
-    if (!user) { setFriends([]); return; }
-    setDbLoading(true);
+    if (!user) {
+      return;
+    }
+  
+    let cancelled = false;
+  
     supabase
       .from("friends")
       .select("*, notes(*)")
       .order("created_at", { ascending: true })
       .then(({ data }) => {
-        setFriends((data as DbFriend[] ?? []).map(dbToFriend));
-        setDbLoading(false);
+        if (!cancelled) {
+          setFriends((data as DbFriend[] ?? []).map(dbToFriend));
+        }
       });
+  
+    return () => { cancelled = true; };
   }, [user]);
 
   // ── Navigation ─────────────────────────────────────────────────────────
@@ -461,27 +469,31 @@ export default function App() {
             <button className="nav-signout" onClick={signOut}>Sign out</button>
           </div>
         </nav>
+        
+      <div className={page !== "detail" ? "app-layout" : ""}>
+        <div className="app-main">
+            {page === "detail" && activeFriend ? (
+              <DetailView friend={activeFriend} onAddNote={addNote} onDeleteNote={deleteNote} />
+            ) : page === "summary" ? (
+              <SummaryView friends={friends} />
+            ) : (
+              <>
+                <div className="grid-header">
+                  <h1 className="grid-title">Your friends</h1>
+                  <span className="grid-count">{friends.length} people</span>
+                </div>
+                <div className="grid">
+                  {friends.map((f) => (
+                    <FriendCard key={f.id} friend={f} onClick={() => goToFriend(f.id)} />
+                  ))}
+                  <AddFriendCard onAdd={addFriend} />
+                </div>
+              </>
+            )}
+          </div>
+          {page !== "detail" && <Sidebar friends={friends} />}
+        </div>
 
-        {dbLoading ? (
-          <div className="loading">Loading your friends…</div>
-        ) : page === "detail" && activeFriend ? (
-          <DetailView friend={activeFriend} onAddNote={addNote} onDeleteNote={deleteNote} />
-        ) : page === "summary" ? (
-          <SummaryView friends={friends} />
-        ) : (
-          <>
-            <div className="grid-header">
-              <h1 className="grid-title">Your friends</h1>
-              <span className="grid-count">{friends.length} people</span>
-            </div>
-            <div className="grid">
-              {friends.map((f) => (
-                <FriendCard key={f.id} friend={f} onClick={() => goToFriend(f.id)} />
-              ))}
-              <AddFriendCard onAdd={addFriend} />
-            </div>
-          </>
-        )}
       </div>
     </>
   );

@@ -1,0 +1,113 @@
+.sidebar {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 20px;
+  padding: 24px;
+  position: sticky;
+  top: 24px;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #f5f5f0;
+  margin-bottom: 20px;
+}
+
+.sidebar-empty {
+  font-size: 13px;
+  color: #4a4a60;
+  line-height: 1.5;
+}
+
+/* ── List ────────────────────────────────────────────────────────────────── */
+.sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Avatar ──────────────────────────────────────────────────────────────── */
+.sidebar-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a2e;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px #16213e, 0 0 0 3px var(--accent);
+}
+
+/* ── Info ────────────────────────────────────────────────────────────────── */
+.sidebar-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #f5f5f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-date {
+  font-size: 12px;
+  color: #6a6a80;
+  margin-top: 2px;
+}
+
+/* ── Days pill ───────────────────────────────────────────────────────────── */
+.sidebar-days {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6a6a80;
+  background: #1a1a2e;
+  border: 1px solid #0f3460;
+  border-radius: 20px;
+  padding: 2px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sidebar-days.soon {
+  color: #e94560;
+  border-color: rgba(233, 69, 96, 0.3);
+  background: rgba(233, 69, 96, 0.08);
+}
+
+.sidebar-days.today {
+  font-size: 16px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* ── Divider between items ───────────────────────────────────────────────── */
+.sidebar-item + .sidebar-item {
+  padding-top: 14px;
+  border-top: 1px solid #0f3460;
+}
+
+/* fix gap + border-top doubling */
+.sidebar-list {
+  gap: 0;
+}

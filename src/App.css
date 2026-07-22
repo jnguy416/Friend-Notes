@@ -486,6 +486,18 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 40px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .app-layout { grid-template-columns: 1fr; }
+}
+
 /* ─────────────────────────────────────────────── */
 /* Auth */
 /* ─────────────────────────────────────────────── */
@@ -595,3 +607,4 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     font-size: 15px;
   }
 }
+
