@@ -54,6 +54,7 @@ async function fetchSummaryForFriend(friend: Friend): Promise<FriendSummary> {
   }
   
   Keep gift ideas concrete and specific (e.g. 'a specialty coffee subscription' not just 'coffee'). 
+  Include a couple specific brands to purchase gifts from.
   Be thoughtful, not generic. Your response must be ONLY the raw JSON object. 
   No extra keys. No explanation. No markdown. Only these two keys: "summary" and "highlights".`;
 
@@ -184,10 +185,9 @@ export default function SummaryView({ friends }: SummaryViewProps) {
   
     setLoading(true);
     setGenerated(true);
-    setSummaries({});
   
     const result = await fetchSummaryForFriend(friend);
-    setSummaries({ [result.friendId]: result });
+    setSummaries((prev) => ({ ...prev, [result.friendId]: result }));  // ← merge
   
     setLoading(false);
   }

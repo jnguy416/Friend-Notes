@@ -55,7 +55,7 @@ export default function Sidebar({ friends }: SidebarProps) {
 
       {upcoming.length === 0 ? (
         <p className="sidebar-empty">
-          No birthdays added yet. Edit a friend to add one.
+          Add a friend to see upcoming birthdays!
         </p>
       ) : (
         <div className="sidebar-list">

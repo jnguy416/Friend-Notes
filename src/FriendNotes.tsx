@@ -4,6 +4,9 @@ import type { User } from "@supabase/supabase-js";
 import SummaryView from "./SummaryView";
 import './App.css';
 import Sidebar from "./Sidebar";
+import LandingPage from "./LandingPage";
+import FeedbackButton from "./components/FeedbackButton";
+
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -359,6 +362,7 @@ export default function App() {
   const [friends, setFriends]         = useState<Friend[]>([]);
   const [page, setPage]               = useState<Page>("friends");
   const [activeFriendId, setActiveFriendId] = useState<string | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
 
   const activeFriend = friends.find((f) => f.id === activeFriendId) ?? null;
 
@@ -396,6 +400,28 @@ export default function App() {
     return () => { cancelled = true; };
   }, [user]);
 
+
+  useEffect(() => {
+    if (page === "detail" && activeFriend) {
+      document.title = `${activeFriend.name} · friend.notes`;
+    } else if (page === "summary") {
+      document.title = "Gift ideas · friend.notes";
+    } else {
+      document.title = "friend.notes";
+    }
+  }, [page, activeFriend]);
+
+
+// Page for guests that are not logged in or are unregistered
+  if (authLoading) return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#4a4a60", fontFamily: "Inter, sans-serif" }}>Loading…</div>
+  );
+  
+  if (!user && !showAuth) return <LandingPage onGetStarted={() => setShowAuth(true)} />;
+  
+  if (!user) return <AuthView />;
+
+  
   // ── Navigation ─────────────────────────────────────────────────────────
   function goToFriend(id: string) { setActiveFriendId(id); setPage("detail"); }
   function goToFriends()          { setActiveFriendId(null); setPage("friends"); }
@@ -462,7 +488,7 @@ export default function App() {
             Friends
           </button>
           <button className="nav-tab" onClick={goToSummary}>
-            Digest
+            Gift Ideas
           </button>
           <div className="nav-right">
             <span className="nav-email">{user.user_metadata.full_name}</span>
@@ -470,8 +496,8 @@ export default function App() {
           </div>
         </nav>
         
-      <div className={page !== "detail" ? "app-layout" : ""}>
-        <div className="app-main">
+        <div className={page !== "detail" ? "app-layout" : ""}>
+          <div className="app-main">
             {page === "detail" && activeFriend ? (
               <DetailView friend={activeFriend} onAddNote={addNote} onDeleteNote={deleteNote} />
             ) : page === "summary" ? (
@@ -493,8 +519,9 @@ export default function App() {
           </div>
           {page !== "detail" && <Sidebar friends={friends} />}
         </div>
-
       </div>
+      <FeedbackButton />
+
     </>
   );
 }
