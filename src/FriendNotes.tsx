@@ -337,6 +337,7 @@ function AddFriendCard({ onAdd }: { onAdd: (f: Omit<Friend, "id" | "notes">) => 
         <input className="add-friend-input" placeholder="Full name *" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
         <input className="add-friend-input" placeholder="Handle (e.g. @alex)" value={handle} onChange={(e) => setHandle(e.target.value)} />
         <input className="add-friend-input" placeholder="Location (e.g. London, UK)" value={location} onChange={(e) => setLocation(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAdd()} />
+        <label className="add-friend-label">Birthday</label>
         <input className="add-friend-input" type="date" placeholder="Birthday" value={birthday} onChange={(e) => setBirthday(e.target.value)} />
       </div>
       <div className="color-picker-label">Avatar colour</div>
