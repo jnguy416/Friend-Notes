@@ -15,6 +15,7 @@ interface Friend {
   avatarColor: string;
   location: string;
   notes: Note[];
+  birthday: string | null;
 }
 
 interface FriendSummary {
@@ -26,6 +27,17 @@ interface FriendSummary {
 // ── Helpers ────────────────────────────────────────────────────────────────
 function initials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase();
+}
+
+function calcAge(birthday: string): number {
+  const today = new Date();
+  const bday  = new Date(birthday + "T00:00:00");
+  let age = today.getFullYear() - bday.getFullYear();
+  const monthDiff = today.getMonth() - bday.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < bday.getDate())) {
+    age--;
+  }
+  return age;
 }
 
 // ── Groq API ───────────────────────────────────────────────────────────────
@@ -41,7 +53,7 @@ async function fetchSummaryForFriend(friend: Friend): Promise<FriendSummary> {
 
   const prompt = `You are a thoughtful personal assistant helping someone pick gift ideas for their friend.
 
-  Here are notes about ${friend.name} (${friend.handle}), who lives in ${friend.location}:
+  Here are notes about ${friend.name}, who lives in ${friend.location} and is ${calcAge(friend.birthday)}:
   
   ${notesBlock}
   
@@ -53,7 +65,7 @@ async function fetchSummaryForFriend(friend: Friend): Promise<FriendSummary> {
     "highlights": ["A specific gift idea", "Another specific gift idea", "A third gift idea", "A fourth gift idea"]
   }
   
-  Keep gift ideas concrete and specific (e.g. 'a specialty coffee subscription' not just 'coffee'). 
+  Keep gift ideas concrete and specific (e.g. 'custom keycaps from Osume' not just 'coffee'). 
   Include a couple specific brands to purchase gifts from.
   Be thoughtful, not generic. Your response must be ONLY the raw JSON object. 
   No extra keys. No explanation. No markdown. Only these two keys: "summary" and "highlights".`;

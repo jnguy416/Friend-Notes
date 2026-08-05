@@ -68,7 +68,7 @@ export default function FaqPage() {
     <div className="faq-root">
       <div className="faq-header">
         <h1 className="faq-title">Frequently asked questions</h1>
-        <p className="faq-subtitle">Everything you need to know about friend.notes.</p>
+        <p className="faq-subtitle">Everything you need to know about friend.notes</p>
       </div>
 
       <div className="faq-list">
