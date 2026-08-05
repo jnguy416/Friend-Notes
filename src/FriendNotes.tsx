@@ -416,13 +416,13 @@ function AppInner() {
       setUser(session?.user ?? null);
       setAuthLoading(false);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       if (!session) {
         setFriends([])
-      } else {
+      } else if (event === "SIGNED_IN") {
         navigate("/friends");
-      } 
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
