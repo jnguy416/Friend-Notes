@@ -53,8 +53,8 @@ async function fetchSummaryForFriend(friend: Friend): Promise<FriendSummary> {
 
   const prompt = `You are a thoughtful personal assistant helping someone pick gift ideas for their friend.
 
-  Here are notes about ${friend.name}, who lives in ${friend.location} and is ${calcAge(friend.birthday)}:
-  
+  Here are notes about ${friend.name}, who lives in ${friend.location} ${friend.birthday ? ` and is ${calcAge(friend.birthday)} years old` : ""}:  
+
   ${notesBlock}
   
   Based on these notes, suggest gift ideas for this person.
