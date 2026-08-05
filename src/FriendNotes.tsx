@@ -5,6 +5,7 @@ import SummaryView from "./SummaryView";
 import './App.css';
 import Sidebar from "./Sidebar";
 import LandingPage from "./LandingPage";
+import FaqPage from "./FaqPage";
 import FeedbackButton from "./components/FeedbackButton";
 
 
@@ -32,7 +33,7 @@ interface Friend {
   birthday: string | null;
 }
 
-type Page = "friends" | "detail" | "summary"; 
+type Page = "friends" | "detail" | "summary" | "faq"; 
 
 // ── DB row shapes ──────────────────────────────────────────────────────────
 interface DbNote { 
@@ -427,6 +428,7 @@ export default function App() {
   function goToFriend(id: string) { setActiveFriendId(id); setPage("detail"); }
   function goToFriends()          { setActiveFriendId(null); setPage("friends"); }
   function goToSummary()          { setActiveFriendId(null); setPage("summary"); }
+  
 
   // ── Mutations ──────────────────────────────────────────────────────────
   async function addFriend(draft: Omit<Friend, "id" | "notes">) {
@@ -491,6 +493,7 @@ export default function App() {
           <button className="nav-tab" onClick={goToSummary}>
             Gift Ideas
           </button>
+          <button className="nav-tab" onClick={() => setPage("faq")}>FAQ</button>
           <div className="nav-right">
             <span className="nav-email">{user.user_metadata.full_name}</span>
             <button className="nav-signout" onClick={signOut}>Sign out</button>
@@ -503,6 +506,8 @@ export default function App() {
               <DetailView friend={activeFriend} onAddNote={addNote} onDeleteNote={deleteNote} />
             ) : page === "summary" ? (
               <SummaryView friends={friends} />
+            ) : page === "faq" ? (
+              <FaqPage />
             ) : (
               <>
                 <div className="grid-header">
