@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation, useParams } from "react-router-dom";
 import SummaryView from "./SummaryView";
 import './App.css';
 import Sidebar from "./Sidebar";
@@ -33,7 +34,7 @@ interface Friend {
   birthday: string | null;
 }
 
-type Page = "friends" | "detail" | "summary" | "faq"; 
+
 
 // ── DB row shapes ──────────────────────────────────────────────────────────
 interface DbNote { 
@@ -173,15 +174,17 @@ const CATEGORIES = [
   "Gift Ideas",
 ];
 
-function DetailView({ friend, onAddNote, onDeleteNote }: {
+function DetailView({ friend, onAddNote, onDeleteNote, onDeleteFriend }: {
   friend: Friend;
   onAddNote: (friendId: string, text: string, category: string) => Promise<void>;
   onDeleteNote: (friendId: string, noteId: string) => Promise<void>;
+  onDeleteFriend: (friendId: string) => Promise<void>;
 }) {
   const [draft, setDraft]   = useState("");
   const [saving, setSaving] = useState(false);
   const [category, setCategory] = useState("General");
   const [filter, setFilter] = useState("All");
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const filteredNotes = filter === "All"
   ? friend.notes
@@ -223,6 +226,21 @@ function DetailView({ friend, onAddNote, onDeleteNote }: {
           <strong>{friend.notes.length}</strong>
           {friend.notes.length === 1 ? "note saved" : "notes saved"}
         </div>
+
+        {confirmDelete ? (
+          <div className="delete-confirm">
+            <p className="delete-confirm-text">Remove {friend.name}?</p>
+            <div className="delete-confirm-actions">
+              <button className="btn-cancel" onClick={() => setConfirmDelete(false)}>Cancel</button>
+              <button className="btn-delete-friend" onClick={() => onDeleteFriend(friend.id)}>Remove</button>
+            </div>
+          </div>
+        ) : (
+          <button className="btn-remove-friend" onClick={() => setConfirmDelete(true)}>
+            Remove friend
+          </button>
+        )}
+
       </aside>
 
       <main>
@@ -285,6 +303,7 @@ function DetailView({ friend, onAddNote, onDeleteNote }: {
     </div>
   );
 }
+
 
 // ── Add Friend Card ────────────────────────────────────────────────────────
 function AddFriendCard({ onAdd }: { onAdd: (f: Omit<Friend, "id" | "notes">) => Promise<void> }) {
@@ -357,18 +376,41 @@ function AddFriendCard({ onAdd }: { onAdd: (f: Omit<Friend, "id" | "notes">) => 
   );
 }
 
-// ── App ────────────────────────────────────────────────────────────────────
-export default function App() {
+// ── Detail Page (reads handle from URL) ───────────────────────────────────
+function DetailPage({ friends, onAddNote, onDeleteNote, onDeleteFriend }: {
+  friends: Friend[];
+  onAddNote: (friendId: string, text: string, category: string) => Promise<void>;
+  onDeleteNote: (friendId: string, noteId: string) => Promise<void>;
+  onDeleteFriend: (friendId: string) => Promise<void>;
+}) {
+  const { handle } = useParams<{ handle: string }>();
+  const friend = friends.find((f) => f.handle.replace("@", "") === handle);
+
+  if (!friend) return <div className="loading">Friend not found.</div>;
+
+  return (
+    <DetailView
+      friend={friend}
+      onAddNote={onAddNote}
+      onDeleteNote={onDeleteNote}
+      onDeleteFriend={onDeleteFriend}
+    />
+  );
+}
+
+// ── Inner App (has access to router hooks) ─────────────────────────────────
+function AppInner() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [user, setUser]               = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [friends, setFriends]         = useState<Friend[]>([]);
-  const [page, setPage]               = useState<Page>("friends");
-  const [activeFriendId, setActiveFriendId] = useState<string | null>(null);
-  const [showAuth, setShowAuth] = useState(false);
+  const [showAuth, setShowAuth]       = useState(false);
 
-  const activeFriend = friends.find((f) => f.id === activeFriendId) ?? null;
+  const isDetail = location.pathname.startsWith("/friends/");
 
-  // ── Auth listener ──────────────────────────────────────────────────────
+  // ── Auth listener ────────────────────────────────────────────────────
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -376,66 +418,57 @@ export default function App() {
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
-      if (!session) setFriends([]);
+      if (!session) {
+        setFriends([])
+      } else {
+        navigate("/friends");
+      } 
     });
     return () => subscription.unsubscribe();
   }, []);
 
-  // ── Load friends when user signs in ───────────────────────────────────
+  // ── Load friends ─────────────────────────────────────────────────────
   useEffect(() => {
-    if (!user) {
-      return;
-    }
-  
+    if (!user) return;
     let cancelled = false;
-  
     supabase
       .from("friends")
       .select("*, notes(*)")
       .order("created_at", { ascending: true })
       .then(({ data }) => {
-        if (!cancelled) {
-          setFriends((data as DbFriend[] ?? []).map(dbToFriend));
-        }
+        if (!cancelled) setFriends((data as DbFriend[] ?? []).map(dbToFriend));
       });
-  
     return () => { cancelled = true; };
   }, [user]);
 
-
+  // ── Page title ───────────────────────────────────────────────────────
   useEffect(() => {
-    if (page === "detail" && activeFriend) {
-      document.title = `${activeFriend.name} · friend.notes`;
-    } else if (page === "summary") {
+    if (isDetail) {
+      const handle = location.pathname.split("/friends/")[1];
+      const friend = friends.find((f) => f.handle.replace("@", "") === handle);
+      document.title = friend ? `${friend.name} · friend.notes` : "friend.notes";
+    } else if (location.pathname === "/gift-ideas") {
       document.title = "Gift ideas · friend.notes";
+    } else if (location.pathname === "/faq") {
+      document.title = "FAQ · friend.notes";
     } else {
       document.title = "friend.notes";
     }
-  }, [page, activeFriend]);
+  }, [location.pathname, friends, isDetail]);
 
+  // ── Navigation ───────────────────────────────────────────────────────
+  function goToFriend(id: string) {
+    const friend = friends.find((f) => f.id === id);
+    if (!friend) return;
+    navigate(`/friends/${friend.handle.replace("@", "")}`);
+  }
 
-// Page for guests that are not logged in or are unregistered
-  if (authLoading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#4a4a60", fontFamily: "Inter, sans-serif" }}>Loading…</div>
-  );
-  
-  if (!user && !showAuth) return <LandingPage onGetStarted={() => setShowAuth(true)} />;
-  
-  if (!user) return <AuthView />;
-
-  
-  // ── Navigation ─────────────────────────────────────────────────────────
-  function goToFriend(id: string) { setActiveFriendId(id); setPage("detail"); }
-  function goToFriends()          { setActiveFriendId(null); setPage("friends"); }
-  function goToSummary()          { setActiveFriendId(null); setPage("summary"); }
-  
-
-  // ── Mutations ──────────────────────────────────────────────────────────
+  // ── Mutations ────────────────────────────────────────────────────────
   async function addFriend(draft: Omit<Friend, "id" | "notes">) {
     if (!user) return;
     const { data } = await supabase
       .from("friends")
-      .insert({ user_id: user.id, name: draft.name, handle: draft.handle, avatar_color: draft.avatarColor, location: draft.location, birthday : draft.birthday ?? null, })
+      .insert({ user_id: user.id, name: draft.name, handle: draft.handle, avatar_color: draft.avatarColor, location: draft.location, birthday: draft.birthday ?? null })
       .select("*, notes(*)")
       .single();
     if (data) setFriends((prev) => [...prev, dbToFriend(data as DbFriend)]);
@@ -445,16 +478,11 @@ export default function App() {
     if (!user) return;
     const { data } = await supabase
       .from("notes")
-      .insert({ friend_id: friendId, user_id: user.id, text, category})
+      .insert({ friend_id: friendId, user_id: user.id, text, category })
       .select()
       .single();
     if (data) {
-      const note: Note = { 
-        id: data.id, 
-        text: data.text, 
-        createdAt: data.created_at.slice(0, 10),
-        category: data.category,
-      };
+      const note: Note = { id: data.id, text: data.text, createdAt: data.created_at.slice(0, 10), category: data.category };
       setFriends((prev) => prev.map((f) => f.id === friendId ? { ...f, notes: [...f.notes, note] } : f));
     }
   }
@@ -464,70 +492,90 @@ export default function App() {
     setFriends((prev) => prev.map((f) => f.id === friendId ? { ...f, notes: f.notes.filter((n) => n.id !== noteId) } : f));
   }
 
-  async function signOut() { await supabase.auth.signOut(); setPage("friends"); }
+  async function deleteFriend(friendId: string) {
+    await supabase.from("friends").delete().eq("id", friendId);
+    setFriends((prev) => prev.filter((f) => f.id !== friendId));
+    navigate("/friends");
+  }
 
-  // ── Render ─────────────────────────────────────────────────────────────
+  async function signOut() { await supabase.auth.signOut(); navigate("/"); }
+
+  // ── Guards ───────────────────────────────────────────────────────────
   if (authLoading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#4a4a60", fontFamily: "Inter, sans-serif" }}>Loading…</div>
   );
 
+  if (!user && !showAuth) return <LandingPage onGetStarted={() => setShowAuth(true)} />;
   if (!user) return <AuthView />;
 
+  // ── Render ───────────────────────────────────────────────────────────
   return (
     <>
-      {/* <StyleTag /> */}
       <div className="app">
         <nav className="nav">
-          <span className="nav-logo">friend<span>.</span>notes</span>
-          {page === "detail" && activeFriend && (
-            <button className="nav-back" onClick={goToFriends}>
+          <span className="nav-logo" onClick={() => navigate("/friends")} style={{ cursor: "pointer" }}>
+            friend<span>.</span>notes
+          </span>
+          {isDetail && (
+            <button className="nav-back" onClick={() => navigate("/friends")}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
               All friends
             </button>
           )}
-          <button className="nav-tab" onClick={goToFriends}>
-            Friends
-          </button>
-          <button className="nav-tab" onClick={goToSummary}>
-            Gift Ideas
-          </button>
-          <button className="nav-tab" onClick={() => setPage("faq")}>FAQ</button>
+          <button className="nav-tab" onClick={() => navigate("/friends")}>Friends</button>
+          <button className="nav-tab" onClick={() => navigate("/gift-ideas")}>Gift Ideas</button>
+          <button className="nav-tab" onClick={() => navigate("/faq")}>FAQ</button>
           <div className="nav-right">
             <span className="nav-email">{user.user_metadata.full_name}</span>
             <button className="nav-signout" onClick={signOut}>Sign out</button>
           </div>
         </nav>
-        
-        <div className={page !== "detail" ? "app-layout" : ""}>
+
+        <div className={!isDetail ? "app-layout" : ""}>
           <div className="app-main">
-            {page === "detail" && activeFriend ? (
-              <DetailView friend={activeFriend} onAddNote={addNote} onDeleteNote={deleteNote} />
-            ) : page === "summary" ? (
-              <SummaryView friends={friends} />
-            ) : page === "faq" ? (
-              <FaqPage />
-            ) : (
-              <>
-                <div className="grid-header">
-                  <h1 className="grid-title">Your friends</h1>
-                  <span className="grid-count">{friends.length} people</span>
-                </div>
-                <div className="grid">
-                  {friends.map((f) => (
-                    <FriendCard key={f.id} friend={f} onClick={() => goToFriend(f.id)} />
-                  ))}
-                  <AddFriendCard onAdd={addFriend} />
-                </div>
-              </>
-            )}
+            <Routes>
+              <Route path="/friends" element={
+                <>
+                  <div className="grid-header">
+                    <h1 className="grid-title">Your friends</h1>
+                    <span className="grid-count">{friends.length} people</span>
+                  </div>
+                  <div className="grid">
+                    {friends.map((f) => (
+                      <FriendCard key={f.id} friend={f} onClick={() => goToFriend(f.id)} />
+                    ))}
+                    <AddFriendCard onAdd={addFriend} />
+                  </div>
+                </>
+              } />
+              <Route path="/friends/:handle" element={
+                <DetailPage
+                  friends={friends}
+                  onAddNote={addNote}
+                  onDeleteNote={deleteNote}
+                  onDeleteFriend={deleteFriend}
+                />
+              } />
+              <Route path="/gift-ideas" element={<SummaryView friends={friends} />} />
+              <Route path="/faq" element={<FaqPage />} />
+              <Route path="*" element={<></>} />
+            </Routes>
           </div>
-          {page !== "detail" && <Sidebar friends={friends} />}
+          {!isDetail && <Sidebar friends={friends} />}
         </div>
       </div>
       <FeedbackButton />
-
     </>
+  );
+}
+
+// ── App (wraps with BrowserRouter) ────────────────────────────────────────
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppInner />
+    </BrowserRouter>
   );
 }
