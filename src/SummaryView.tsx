@@ -212,7 +212,7 @@ export default function SummaryView({ friends }: SummaryViewProps) {
         <div>
           <h1 className="summary-title">Gift ideas</h1>
           <p className="summary-subtitle">
-            Select friends and the AI will suggest gift ideas based on your notes.
+            Select a friend from the drowndown list and have AI suggest gift ideas based on your notes.
           </p>
         </div>
         <button

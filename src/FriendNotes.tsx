@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
-import { BrowserRouter, Routes, Route, useNavigate, useLocation, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
 import SummaryView from "./SummaryView";
 import './App.css';
 import Sidebar from "./Sidebar";
@@ -290,7 +290,7 @@ function DetailView({ friend, onAddNote, onDeleteNote, onDeleteFriend }: {
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4a4a60" strokeWidth="1.5">
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
             </svg>
-            <p>No notes yet — add one above.</p>
+            <p>No notes yet. Add one above.</p>
           </div>
         ) : (
           <div className="notes-list">
@@ -408,7 +408,7 @@ function AppInner() {
   const [friends, setFriends]         = useState<Friend[]>([]);
   const [showAuth, setShowAuth]       = useState(false);
 
-  const isDetail = location.pathname.startsWith("/friends/");
+  const isDetail = location.pathname.startsWith("/friends/") || location.pathname.startsWith("/faq");
 
   // ── Auth listener ────────────────────────────────────────────────────
   useEffect(() => {
@@ -416,13 +416,10 @@ function AppInner() {
       setUser(session?.user ?? null);
       setAuthLoading(false);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
-      if (!session) {
-        setFriends([])
-      } else if (event === "SIGNED_IN") {
-        navigate("/friends");
-      }
+      
+      if (!session) setFriends([]);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -446,7 +443,7 @@ function AppInner() {
     if (isDetail) {
       const handle = location.pathname.split("/friends/")[1];
       const friend = friends.find((f) => f.handle.replace("@", "") === handle);
-      document.title = friend ? `${friend.name} · friend.notes` : "friend.notes";
+      document.title = friend ? `${friend.handle} · friend.notes` : "friend.notes";
     } else if (location.pathname === "/gift-ideas") {
       document.title = "Gift ideas · friend.notes";
     } else if (location.pathname === "/faq") {
@@ -536,6 +533,7 @@ function AppInner() {
         <div className={!isDetail ? "app-layout" : ""}>
           <div className="app-main">
             <Routes>
+              <Route path="/" element={<Navigate to="/friends" replace />} />
               <Route path="/friends" element={
                 <>
                   <div className="grid-header">

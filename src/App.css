@@ -15,7 +15,7 @@ body {
     min-height: 100vh;
 }
 
-.app { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+.app { max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
 
 /* ── Top nav ── */
 .nav {
@@ -436,6 +436,58 @@ body {
 .add-friend-input:focus { border-color: #e94560; }
 .add-friend-input::placeholder { color: #4a4a60; }
 
+/* remove friend */
+.btn-remove-friend {
+  background: none;
+  color: #535360;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  padding: 0;
+  margin-top: 12px;
+  transition: color 0.15s;
+}
+
+.btn-remove-friend:hover { color: #e94560; }
+
+.delete-confirm {
+  margin-top: 24px;
+  background: rgba(233, 69, 96, 0.08);
+  border: 1px solid rgba(233, 69, 96, 0.2);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.delete-confirm-text {
+  font-size: 13px;
+  color: #f5f5f0;
+  margin-bottom: 12px;
+}
+
+.delete-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-delete-friend {
+  background: #e94560;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-delete-friend:hover { background: #d63652; }
+
+
+
+/* picking color */
 .color-picker-label {
 font-size: 12px;
 color: var(--main-text-color);

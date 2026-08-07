@@ -16,6 +16,7 @@ function initials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase();
 }
 
+// get five upcoming birthdays
 function getUpcomingBirthdays(friends: Friend[]) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
