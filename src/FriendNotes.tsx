@@ -124,11 +124,15 @@ function AuthView() {
         client_id: clientId,
         callback: handleCredential,
       });
+
       if (googleBtnRef.current) {
+        const containerWidth = googleBtnRef.current.clientWidth || 380;
+        const buttonWidth = Math.min(380, Math.max(200, containerWidth));
+
         window.google.accounts.id.renderButton(googleBtnRef.current, {
           theme: "filled_black",
           size: "large",
-          width: 380,
+          width: buttonWidth,
           text: "continue_with",
           shape: "rectangular",
         });
