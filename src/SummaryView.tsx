@@ -65,8 +65,8 @@ async function fetchSummaryForFriend(friend: Friend): Promise<FriendSummary> {
     "highlights": ["A specific gift idea", "Another specific gift idea", "A third gift idea", "A fourth gift idea"]
   }
   
-  Keep gift ideas concrete and specific (e.g. 'custom keycaps from Osume' not just 'coffee'). 
-  Include a couple specific brands to purchase gifts from.
+  Keep gift ideas specific and concise (e.g. 'custom keycaps from Osume' not just 'coffee'). 
+  Include a couple of specific brands to purchase gifts from.
   Be thoughtful, not generic. Your response must be ONLY the raw JSON object. 
   No extra keys. No explanation. No markdown. Only these two keys: "summary" and "highlights".`;
 
