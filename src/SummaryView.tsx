@@ -77,9 +77,9 @@ async function fetchSummaryForFriend(friend: Friend): Promise<FriendSummary> {
       "Authorization": `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
+      model: "groq/compound",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 1000,
+      max_tokens: 512,
     }),
   });
 
