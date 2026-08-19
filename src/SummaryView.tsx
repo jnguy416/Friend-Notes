@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { GoogleGenAI } from "@google/genai";
 import "./SummaryView.css";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -40,7 +41,9 @@ function calcAge(birthday: string): number {
   return age;
 }
 
-// ── Groq API ───────────────────────────────────────────────────────────────
+
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+
 async function fetchSummaryForFriend(friend: Friend): Promise<FriendSummary> {
   if (friend.notes.length === 0) {
     return { friendId: friend.id, summary: "No notes recorded yet.", highlights: [] };
@@ -50,54 +53,45 @@ async function fetchSummaryForFriend(friend: Friend): Promise<FriendSummary> {
     .map((n) => `- [${n.createdAt}] ${n.text}`)
     .join("\n");
 
-
   const prompt = `You are a thoughtful personal assistant helping someone pick gift ideas for their friend.
 
-  Here are notes about ${friend.name}, who lives in ${friend.location} ${friend.birthday ? ` and is ${calcAge(friend.birthday)} years old` : ""}:  
+  Here are notes about ${friend.name}, who lives in ${friend.location}${friend.birthday ? ` and is ${calcAge(friend.birthday)} years old` : ""}:
 
   ${notesBlock}
-  
+
   Based on these notes, suggest gift ideas for this person.
-  
-  Respond ONLY with a valid JSON object (no markdown, no explanation) in this exact shape:
+
+  Respond ONLY with a valid JSON object in this exact shape:
   {
-    "summary": "A warm 1-2 sentence summary of what this person is into, to explain why these gifts suit them.",
+    "summary": "A warm 1-2 sentence summary of what this person is into.",
     "highlights": ["A specific gift idea", "Another specific gift idea", "A third gift idea", "A fourth gift idea"]
   }
-  
-  Keep gift ideas specific and concise (e.g. 'custom keycaps from Osume' not just 'coffee'). 
-  Include a couple of specific brands to purchase gifts from.
-  Be thoughtful, not generic. Your response must be ONLY the raw JSON object. 
-  No extra keys. No explanation. No markdown. Only these two keys: "summary" and "highlights".`;
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "groq/compound",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 512,
-    }),
-  });
-
-  const data = await response.json();
-  const text = data.choices?.[0]?.message?.content ?? "";
+  Keep gift ideas specific. Include specific brands.`;
 
   try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash-lite",
+      contents: prompt,
+    });
+
+    const text = response.text ?? "";
     const clean = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(clean);
+
     return {
       friendId: friend.id,
-      summary: parsed.summary,
-      highlights: parsed.highlights ?? [],
+      summary: typeof parsed.summary === "string" ? parsed.summary : "Could not parse summary.",
+      highlights: Array.isArray(parsed.highlights)
+        ? parsed.highlights.filter((h: unknown) => typeof h === "string")
+        : [],
     };
-  } catch {
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("Gemini error:", err);
     return {
       friendId: friend.id,
-      summary: text.slice(0, 300) || "Could not parse summary.",
+      summary: msg.includes("429") ? "Rate limit exceeded. Try again later." : "Could not generate summary.",
       highlights: [],
     };
   }
